@@ -9,7 +9,7 @@ Web estática (HTML + CSS, sin JavaScript ni cookies).
 
 ## Publicación
 
-Cada cambio en la rama `main` se sube automáticamente a Arsys por FTP
+Cada cambio en la rama `main` se sube automáticamente a Arsys por SFTP
 (`.github/workflows/publicar.yml`). Necesita estos secretos en
 GitHub → Settings → Secrets and variables → Actions:
 
@@ -18,4 +18,4 @@ GitHub → Settings → Secrets and variables → Actions:
 | `FTP_SERVER` | Servidor FTP de Arsys |
 | `FTP_USERNAME` | Usuario FTP |
 | `FTP_PASSWORD` | Contraseña FTP |
-| `FTP_SERVER_DIR` | Carpeta de la web en el servidor, terminada en `/` |
+| `FTP_SERVER_DIR` | (Opcional) carpeta de la web en el servidor, terminada en `/`. Si no se pone, se detecta sola |

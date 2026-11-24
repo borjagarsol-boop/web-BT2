@@ -12,18 +12,40 @@ concurrency:
 jobs:
   publicar:
     runs-on: ubuntu-latest
+    env:
+      HOST: ${{ secrets.FTP_SERVER }}
+      USER: ${{ secrets.FTP_USERNAME }}
+      PASS: ${{ secrets.FTP_PASSWORD }}
+      DIR: ${{ secrets.FTP_SERVER_DIR }}
     steps:
       - uses: actions/checkout@v4
-      - name: Subir por FTP a Arsys
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
-          exclude: |
-            **/.git*
-            **/.git*/**
-            .github/**
-            README.md
+
+      - name: Instalar lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Localizar la carpeta de la web en el servidor
+        run: |
+          set -e
+          if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$PASS" ]; then
+            echo "::error::Faltan los secretos FTP_SERVER, FTP_USERNAME o FTP_PASSWORD"; exit 1
+          fi
+          LS=$(lftp -u "$USER","$PASS" "sftp://$HOST" -e "set sftp:auto-confirm yes; set net:max-retries 2; cls -1 /; bye")
+          echo "Contenido de la raíz del servidor:"; echo "$LS"
+          if [ -z "$DIR" ]; then
+            for d in html httpdocs public_html www; do
+              if echo "$LS" | grep -qx "/\?$d/\?"; then DIR="/$d/"; break; fi
+            done
+            [ -z "$DIR" ] && DIR="/"
+          fi
+          echo "Carpeta de publicación: $DIR"
+          echo "DIR=$DIR" >> "$GITHUB_ENV"
+
+      - name: Subir la web (SFTP)
+        run: |
+          lftp -u "$USER","$PASS" "sftp://$HOST" -e "
+            set sftp:auto-confirm yes;
+            set net:max-retries 2;
+            mirror -R --verbose --parallel=4 \
+              --exclude-glob .git* --exclude-glob .github/ --exclude README.md \
+              ./ $DIR;
+            bye"
