@@ -28,3 +28,18 @@ jobs:
           for u in /aviso-legal/ /politica-privacidad/ /politica-de-cookies/ /wp-admin/ /contacto/; do
             printf "%-24s %s\n" "$u" "$(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' https://www.bt2.es$u)"
           done
+      - name: Restos de WordPress y PHP bloqueados
+        run: |
+          for u in /index.php /wp-login.php /xmlrpc.php /wp-config.php /wp-content/ /wp-includes/version.php /.well-known/security.txt; do
+            printf "%-28s %s\n" "$u" "$(curl -s -o /dev/null -w '%{http_code}' https://www.bt2.es$u)"
+          done
+      - name: TLS y DNS del dominio
+        run: |
+          echo | openssl s_client -connect www.bt2.es:443 -servername www.bt2.es 2>/dev/null | openssl x509 -noout -issuer -enddate || true
+          for v in tls1 tls1_1; do echo -n "$v: "; echo | timeout 5 openssl s_client -$v -connect www.bt2.es:443 >/dev/null 2>&1 && echo ACEPTADO || echo rechazado; done
+          sudo apt-get install -y -qq dnsutils >/dev/null 2>&1 || true
+          echo "SPF:";   dig +short TXT bt2.es | grep -i spf || echo "(ninguno)"
+          echo "DMARC:"; dig +short TXT _dmarc.bt2.es || true
+          echo "CAA:";   dig +short CAA bt2.es || true
+          echo "MX:";    dig +short MX bt2.es || true
+          echo "DNSSEC:"; dig +dnssec +short DS bt2.es || true

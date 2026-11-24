@@ -50,6 +50,6 @@ jobs:
             rm -r ${DIR}.github;
             set cmd:fail-exit yes;
             mirror -R --verbose --parallel=4 \
-              --exclude '^\.git/' --exclude '^\.github/' --exclude '^\.gitignore$' --exclude '^README\.md$' \
+              --exclude '^\.git/' --exclude '^\.github/' --exclude '^\.gitattributes$' --exclude '^\.gitignore$' --exclude '^README\.md$' \
               ./ $DIR;
             bye"

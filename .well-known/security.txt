@@ -1,0 +1,4 @@
+Contact: mailto:info@bt2.es
+Expires: 2027-11-24T00:00:00.000Z
+Preferred-Languages: es, en
+Canonical: https://www.bt2.es/.well-known/security.txt
