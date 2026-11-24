@@ -1,0 +1,25 @@
+name: Comprobar web publicada
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Publicar web en Arsys"]
+    types: [completed]
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cabeceras de la página principal
+        run: curl -sSI https://www.bt2.es/ || true
+      - name: Redirecciones (http y sin www)
+        run: |
+          curl -sSI http://bt2.es/ | grep -iE "^HTTP|^location" || true
+          curl -sSI https://bt2.es/ | grep -iE "^HTTP|^location" || true
+      - name: Contenido servido
+        run: curl -sS https://www.bt2.es/ | grep -oE "<title>[^<]*</title>|Invertimos en empresas|wp-content" | sort | uniq -c || true
+      - name: Páginas nuevas y archivos protegidos
+        run: |
+          for u in /aviso-legal.html /privacidad.html /robots.txt /assets/styles.css /.git/HEAD /.htaccess /no-existe; do
+            printf "%-22s %s\n" "$u" "$(curl -s -o /dev/null -w '%{http_code}' https://www.bt2.es$u)"
+          done
