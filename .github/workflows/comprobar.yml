@@ -23,3 +23,8 @@ jobs:
           for u in /aviso-legal.html /privacidad.html /robots.txt /assets/styles.css /.git/HEAD /.htaccess /no-existe; do
             printf "%-22s %s\n" "$u" "$(curl -s -o /dev/null -w '%{http_code}' https://www.bt2.es$u)"
           done
+      - name: Direcciones antiguas
+        run: |
+          for u in /aviso-legal/ /politica-privacidad/ /politica-de-cookies/ /wp-admin/ /contacto/; do
+            printf "%-24s %s\n" "$u" "$(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' https://www.bt2.es$u)"
+          done
