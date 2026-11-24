@@ -45,7 +45,11 @@ jobs:
           lftp -u "$USER","$PASS" "sftp://$HOST" -e "
             set sftp:auto-confirm yes;
             set net:max-retries 2;
+            set cmd:fail-exit no;
+            rm -r ${DIR}.git;
+            rm -r ${DIR}.github;
+            set cmd:fail-exit yes;
             mirror -R --verbose --parallel=4 \
-              --exclude-glob .git* --exclude-glob .github/ --exclude README.md \
+              --exclude '^\.git/' --exclude '^\.github/' --exclude '^\.gitignore$' --exclude '^README\.md$' \
               ./ $DIR;
             bye"
